@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
-const { v4: uuidv4, validate } = require('uuid');
+const { v4: uuidv4, validate, v4 } = require('uuid');
 
 const app = express();
 app.use(express.json());
@@ -26,11 +26,47 @@ function checksExistsUserAccount(request, response, next) {
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-    // Complete aqui
+    const { user } = request;
+
+    if (!user.pro && user.todos.length >= 10) {
+        return response.status(403).json({
+            error: "Operation not allowed"
+        });
+    }
+
+    return next();
 }
 
 function checksTodoExists(request, response, next) {
-    // Complete aqui
+    const { id } = request.params;
+    const { username } = request.headers;
+
+    if (!validate(id)) {
+        return response.status(400).json({
+            error: "Id is invalid."
+        });
+    }
+
+    const user = users.find(user => user.username === username);
+
+    if (!user) {
+        return response.status(404).json({
+            error: "User does not exist."
+        });
+    }
+
+    const todo = user.todos.find(todo => todo.id === id);
+
+    if (!todo) {
+        return response.status(404).json({
+            error: "Todo does not exist."
+        });
+    }
+
+    request.user = user;
+    request.todo = todo;
+
+    return next();
 }
 
 function findUserById(request, response, next) {
